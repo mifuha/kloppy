@@ -161,6 +161,49 @@ class TestHelpers:
             )
         )
 
+    @pytest.mark.parametrize("ball_speed", [65.59, 0.0, None])
+    @pytest.mark.parametrize(
+        "change_orientation, change_dimensions, expected_coordinates",
+        [
+            pytest.param(
+                True, False, Point3D(x=0, y=50, z=0), id="orientation"
+            ),
+            pytest.param(False, True, Point3D(x=1, y=0, z=0), id="dimensions"),
+            pytest.param(True, True, Point3D(x=0, y=1, z=0), id="both"),
+        ],
+    )
+    def test_transform_preserves_ball_speed(
+        self,
+        ball_speed,
+        change_orientation,
+        change_dimensions,
+        expected_coordinates,
+    ):
+        dataset = self._get_tracking_dataset()
+        frame = dataset.frames[0]
+        frame.ball_speed = ball_speed
+
+        transformed = dataset.transform(
+            to_orientation=Orientation.AWAY_HOME
+            if change_orientation
+            else None,
+            to_pitch_dimensions=(
+                NormalizedPitchDimensions(
+                    x_dim=Dimension(min=0, max=1),
+                    y_dim=Dimension(min=0, max=1),
+                    pitch_length=105,
+                    pitch_width=68,
+                )
+                if change_dimensions
+                else None
+            ),
+        )
+
+        assert transformed.frames[0].ball_coordinates == expected_coordinates
+        assert transformed.frames[0].ball_speed == ball_speed
+        assert frame.ball_coordinates == Point3D(x=100, y=-50, z=0)
+        assert frame.ball_speed == ball_speed
+
     def test_transform_to_orientation(self):
         to_pitch_dimensions = NormalizedPitchDimensions(
             x_dim=Dimension(min=0, max=1),
