@@ -12,6 +12,7 @@ from kloppy.domain import (
     DatasetFlag,
     DatasetType,
     EventDataset,
+    FilteredDataset,
     Frame,
     Orientation,
     Period,
@@ -466,6 +467,9 @@ class DatasetTransformer:
                 for record in dataset.records
             ]
 
+            if isinstance(dataset, FilteredDataset):
+                return replace(dataset, metadata=metadata, records=frames)
+
             return TrackingDataset(
                 metadata=metadata,
                 records=frames,
@@ -474,6 +478,9 @@ class DatasetTransformer:
             events = [
                 transformer.transform_event(event) for event in dataset.records
             ]
+
+            if isinstance(dataset, FilteredDataset):
+                return replace(dataset, metadata=metadata, records=events)
 
             return EventDataset(
                 metadata=metadata,
