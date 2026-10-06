@@ -12,7 +12,6 @@ from kloppy.domain import (
     DatasetFlag,
     DatasetType,
     EventDataset,
-    FilteredDataset,
     Frame,
     Orientation,
     Period,
@@ -467,25 +466,13 @@ class DatasetTransformer:
                 for record in dataset.records
             ]
 
-            if isinstance(dataset, FilteredDataset):
-                return replace(dataset, metadata=metadata, records=frames)
-
-            return TrackingDataset(
-                metadata=metadata,
-                records=frames,
-            )
+            return replace(dataset, metadata=metadata, records=frames)
         elif isinstance(dataset, EventDataset):
             events = [
                 transformer.transform_event(event) for event in dataset.records
             ]
 
-            if isinstance(dataset, FilteredDataset):
-                return replace(dataset, metadata=metadata, records=events)
-
-            return EventDataset(
-                metadata=metadata,
-                records=events,
-            )
+            return replace(dataset, metadata=metadata, records=events)
         else:
             raise KloppyError("Unknown Dataset type")
 
