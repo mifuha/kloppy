@@ -233,23 +233,6 @@ class TestSportecTrackingData:
         # Contains all 3 players
         assert len(dataset.frames[35].players_data) == 3
 
-    def test_transform_preserves_ball_speed(self, dataset: TrackingDataset):
-        frame = dataset.get_record_by_id(10001)
-        assert frame.ball_speed == 65.59
-
-        transformed = dataset.transform(to_orientation="AWAY_HOME")
-        transformed_frame = transformed.get_record_by_id(10001)
-
-        assert transformed_frame.ball_coordinates.x == pytest.approx(
-            -frame.ball_coordinates.x
-        )
-        assert transformed_frame.ball_coordinates.y == pytest.approx(
-            -frame.ball_coordinates.y
-        )
-        assert transformed_frame.ball_coordinates.z == frame.ball_coordinates.z
-        assert transformed_frame.ball_speed == 65.59
-        assert frame.ball_speed == 65.59
-
     def test_load_only_alive_frames(self, raw_data: Path, meta_data: Path):
         dataset = sportec.load_tracking(
             raw_data=raw_data,

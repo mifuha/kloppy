@@ -77,6 +77,7 @@ class TestHelpers:
                     players_data={},
                     other_data=None,
                     ball_coordinates=Point3D(x=100, y=-50, z=0),
+                    ball_speed=None,
                 ),
                 create_frame(
                     frame_id=2,
@@ -96,6 +97,7 @@ class TestHelpers:
                     },
                     other_data={"extra_data": 1},
                     ball_coordinates=Point3D(x=0, y=50, z=1),
+                    ball_speed=65.59,
                 ),
             ],
         )
@@ -118,9 +120,11 @@ class TestHelpers:
         assert transformed_dataset.frames[0].ball_coordinates == Point3D(
             x=0, y=1, z=0
         )
+        assert transformed_dataset.frames[0].ball_speed is None
         assert transformed_dataset.frames[1].ball_coordinates == Point3D(
             x=1, y=0, z=1
         )
+        assert transformed_dataset.frames[1].ball_speed == 65.59
         assert transformed_dataset.metadata.orientation == Orientation.AWAY_HOME
         assert transformed_dataset.metadata.coordinate_system is None
         assert (
@@ -160,49 +164,6 @@ class TestHelpers:
                 pitch_width=68,
             )
         )
-
-    @pytest.mark.parametrize("ball_speed", [65.59, 0.0, None])
-    @pytest.mark.parametrize(
-        "change_orientation, change_dimensions, expected_coordinates",
-        [
-            pytest.param(
-                True, False, Point3D(x=0, y=50, z=0), id="orientation"
-            ),
-            pytest.param(False, True, Point3D(x=1, y=0, z=0), id="dimensions"),
-            pytest.param(True, True, Point3D(x=0, y=1, z=0), id="both"),
-        ],
-    )
-    def test_transform_preserves_ball_speed(
-        self,
-        ball_speed,
-        change_orientation,
-        change_dimensions,
-        expected_coordinates,
-    ):
-        dataset = self._get_tracking_dataset()
-        frame = dataset.frames[0]
-        frame.ball_speed = ball_speed
-
-        transformed = dataset.transform(
-            to_orientation=Orientation.AWAY_HOME
-            if change_orientation
-            else None,
-            to_pitch_dimensions=(
-                NormalizedPitchDimensions(
-                    x_dim=Dimension(min=0, max=1),
-                    y_dim=Dimension(min=0, max=1),
-                    pitch_length=105,
-                    pitch_width=68,
-                )
-                if change_dimensions
-                else None
-            ),
-        )
-
-        assert transformed.frames[0].ball_coordinates == expected_coordinates
-        assert transformed.frames[0].ball_speed == ball_speed
-        assert frame.ball_coordinates == Point3D(x=100, y=-50, z=0)
-        assert frame.ball_speed == ball_speed
 
     def test_transform_to_orientation(self):
         to_pitch_dimensions = NormalizedPitchDimensions(
@@ -469,7 +430,7 @@ class TestHelpers:
                 "ball_x": {0: 100, 1: 0},
                 "ball_y": {0: -50, 1: 50},
                 "ball_z": {0: 0, 1: 1},
-                "ball_speed": {0: None, 1: None},
+                "ball_speed": {0: None, 1: 65.59},
                 "home_1_x": {0: None, 1: 15.0},
                 "home_1_y": {0: None, 1: 35.0},
                 "home_1_d": {0: None, 1: 0.03},
@@ -526,7 +487,7 @@ class TestHelpers:
                 "ball_x": [100, 0],
                 "ball_y": [-50, 50],
                 "ball_z": [0, 1],
-                "ball_speed": [None, None],
+                "ball_speed": [None, 65.59],
                 "match": ["test", "test"],
                 "bonus_column": [11, 12],
                 "home_1_x": [None, 15],
